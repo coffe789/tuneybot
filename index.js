@@ -56,7 +56,7 @@ async function handle_message(message) {
 }
 
 // TODO handle commands
-client.on(Events.InteractionCreate, interaction => {
+client.on(Events.InteractionCreate, async interaction => {
   // TODO If not command, return
   await handle_command(interaction);
 	console.log(interaction);
