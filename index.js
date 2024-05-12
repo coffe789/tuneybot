@@ -1,23 +1,35 @@
-// Require the necessary discord.js classes
-const { Client, Events, GatewayIntentBits, Poll, PollMediaQuestion, Collection, PollAnswer } = require('discord.js');
+const { Client, Events, GatewayIntentBits, Partials, Poll, Collection, PollAnswer } = require('discord.js');
 const { token } = require('./config.json');
+const client = new Client({
+  intents: [GatewayIntentBits.Guilds, GatewayIntentBits.DirectMessages, GatewayIntentBits.MessageContent, GatewayIntentBits.GuildMessageTyping, GatewayIntentBits.GuildMessages],
+  partials: [
+      Partials.Channel,
+      Partials.Message
+    ],
+})
 
-// Create a new client instance
-const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.MessageContent, GatewayIntentBits.GuildMessageTyping, GatewayIntentBits.GuildMessages]});
+async function create_poll(options, poll_title, message) {
+    poll = new Poll(client, {
+      "allowMultiselect" : false,
+      "client" : client,
+      "question" : {"text" : poll_title},
+      "answers" : new Collection(),
+    }, message)
 
-// When the client is ready, run this code (only once).
-// The distinction between `client: Client<boolean>` and `readyClient: Client<true>` is important for TypeScript developers.
-// It makes some properties non-nullable.
-client.once(Events.ClientReady, readyClient => {
-	console.log(`Ready! Logged in as ${readyClient.user.tag}`);
-});
+    // Populate answers
+    for (let i = 0; i < options.length; i += 1)
+    {
+      poll.answers.set(i, new PollAnswer(client, {"id" : i, "poll_media" : {"text" : options[i]}}, poll));
+    }
 
-// client.on(Events.InteractionCreate, interaction => {
-// 	console.log(interaction);
-// 	console.log("DFSFSD");
-// });
+    return poll;
+}
 
-client.on(Events.MessageCreate, async message => {
+async function handle_command(interaction) {
+
+}
+
+async function handle_message(message) {
   const options = [];
   let poll_title = "What will you do?"
 
@@ -32,28 +44,33 @@ client.on(Events.MessageCreate, async message => {
   }
 
   if (options.length > 0) {
-    // Create poll
-    poll = new Poll(client, {
-      "allowMultiselect" : false,
-      "client" : client,
-      "expiresAt" : new Date(0), // Hoping 0 means forever?
-      "question" : {"text" : poll_title},
-      "answers" : new Collection(),
-    }, message)
-
-    // Populate answers
-    for (let i = 0; i < options.length; i += 1)
-    {
-      poll.answers.set(i, new PollAnswer(client, {"id" : i, "poll_media" : {"text" : options[i]}}, poll));
+    try {
+      poll = await create_poll(options, poll_title, message);
+      await message.channel.send({
+        "poll" : poll
+      });
+    } catch (error) {
+      console.log(error);
     }
-
-    // Send
-    await message.channel.send({
-      "poll" : poll
-    });
   }
+}
 
+// TODO handle commands
+client.on(Events.InteractionCreate, interaction => {
+  // TODO If not command, return
+  await handle_command(interaction);
+	console.log(interaction);
 });
 
-// Log in to Discord with your client's token
+// Print when ready
+client.once(Events.ClientReady, readyClient => {
+	console.log(`Ready! Logged in as ${readyClient.user.tag}`);
+});
+
+// Set message callback
+client.on(Events.MessageCreate, async message => {
+  await handle_message(message);
+});
+
+// Log in to Discord
 client.login(token);
