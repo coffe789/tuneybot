@@ -9,7 +9,8 @@ Tuneybot is a discord bot for streamlining pxtune's game TONEYQUEST.
 ```json
 {
 	"token": "my_token",
-}```
+}
+```
 - Run `node index.js`
 
 # Usage
@@ -19,4 +20,5 @@ Tuneybot is a discord bot for streamlining pxtune's game TONEYQUEST.
 ```
 -- My poll name (optional)
 - Option 1
-- Option 2```
+- Option 2
+```
