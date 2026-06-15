@@ -71,6 +71,12 @@ async function handle_message(message) {
     return;
   }
 
+  if (message.content && message.content[0] == "/") {
+    // Prevent mimicking typos when inputing commands
+    return;
+  }
+  
+
   if (fromChannel == undefined || message.channel != fromChannel) {
     console.log("Ignoring poll request as it is not the selected channel");
     return;
